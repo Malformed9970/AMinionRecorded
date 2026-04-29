@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "ARealmRecorded/1.0.2.2": {
+        "runtime": {
+          "ARealmRecorded.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ARealmRecorded/1.0.2.2": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

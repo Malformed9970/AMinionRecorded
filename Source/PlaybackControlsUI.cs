@@ -35,7 +35,6 @@ public static unsafe class PlaybackControlsUI
 
             loadingPlayback = false;
             loadedPlayback = false;
-            Game.fixCountdownPatch.Disable();
             return;
         }
 
@@ -64,7 +63,6 @@ public static unsafe class PlaybackControlsUI
                 loadedPlayback = true;
                 if (!ARealmRecorded.Config.EnableWaymarks)
                     Game.ToggleWaymarks();
-                Game.fixCountdownPatch.Enable();
             }
             return;
         }

@@ -2,7 +2,7 @@
   "version": 3,
   "targets": {
     "net10.0-windows7.0": {
-      "DalamudPackager/14.0.1": {
+      "DalamudPackager/15.0.0": {
         "type": "package",
         "build": {
           "build/DalamudPackager.props": {},
@@ -26,17 +26,17 @@
     }
   },
   "libraries": {
-    "DalamudPackager/14.0.1": {
-      "sha512": "y0WWyUE6dhpGdolK3iKgwys05/nZaVf4ZPtIjpLhJBZvHxkkiE23zYRo7K7uqAgoK/QvK5cqF6l3VG5AbgC6KA==",
+    "DalamudPackager/15.0.0": {
+      "sha512": "411vwC8/X8Z/sQ2TI6v3SvOn66xFPeOjFn3Zn+h0d3Ox2t1kFm66AhDvmx/qcMwVrR+Hidxj0dadpQ2dgyXMBQ==",
       "type": "package",
-      "path": "dalamudpackager/14.0.1",
+      "path": "dalamudpackager/15.0.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "build/DalamudPackager.props",
         "build/DalamudPackager.targets",
         "buildMultiTargeting/DalamudPackager.props",
-        "dalamudpackager.14.0.1.nupkg.sha512",
+        "dalamudpackager.15.0.0.nupkg.sha512",
         "dalamudpackager.nuspec",
         "tasks/net48/DalamudPackager.dll",
         "tasks/net48/Newtonsoft.Json.dll",
@@ -67,7 +67,7 @@
   },
   "projectFileDependencyGroups": {
     "net10.0-windows7.0": [
-      "DalamudPackager >= 14.0.1",
+      "DalamudPackager >= 15.0.0",
       "DotNet.ReproducibleBuilds >= 1.2.39"
     ]
   },
@@ -75,7 +75,7 @@
     "C:\\Users\\Daemon\\.nuget\\packages\\": {}
   },
   "project": {
-    "version": "1.0.2.1",
+    "version": "1.0.3",
     "restore": {
       "projectUniqueName": "D:\\Dalamud\\ARealmRecorded\\Source\\ARealmRecorded.csproj",
       "projectName": "ARealmRecorded",
@@ -119,7 +119,7 @@
         "dependencies": {
           "DalamudPackager": {
             "target": "Package",
-            "version": "[14.0.1, )"
+            "version": "[15.0.0, )"
           },
           "DotNet.ReproducibleBuilds": {
             "suppressParent": "All",

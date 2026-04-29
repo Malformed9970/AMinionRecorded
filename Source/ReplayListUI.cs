@@ -1,10 +1,13 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
 using Dalamud.Interface;
+using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -27,7 +30,9 @@ public static unsafe class ReplayListUI
     private static string editingName = string.Empty;
     private static readonly Regex displayNameRegex = new("(.+)[ _]\\d{4}\\.");
     private static string search = string.Empty;
+    private static string searchContent = string.Empty;
     private static uint selectedContent = 0;
+    private static string loadReplayPath = string.Empty;
 
     public static void Draw()
     {
@@ -96,11 +101,38 @@ public static unsafe class ReplayListUI
             ImGui.SameLine();
             if (ImGui.Button(FontAwesomeIcon.Cog.ToIconString()))
                 showPluginSettings ^= true;
+        }
+
+        using (ImGuiEx.FontBlock.Begin(UiBuilder.IconFont))
+        {
+            ImGui.SameLine();
+            if (ImGui.Button(FontAwesomeIcon.File.ToIconString()))
+                ImGui.OpenPopup("LoadReplayFromFile");
+        }
+        ImGuiEx.SetItemTooltip("Load replay from file.");
 #if DEBUG
+        using (ImGuiEx.FontBlock.Begin(UiBuilder.IconFont))
+        {
             ImGui.SameLine();
             if (ImGui.Button(FontAwesomeIcon.ExclamationTriangle.ToIconString()))
                 Game.ReadPackets(Game.LastSelectedReplay);
+        }
 #endif
+        if (ImGui.BeginPopup("LoadReplayFromFile"))
+        {
+            ImGui.SetNextItemWidth(250f);
+
+            var load = ImGui.InputTextWithHint("##loadReplayFromFile", "Path...", ref loadReplayPath, flags: ImGuiInputTextFlags.EnterReturnsTrue);
+            load |= ImGuiComponents.IconButtonWithText(FontAwesomeIcon.File, "Load Replay");
+
+            if (load)
+            {
+                var pathFixed = loadReplayPath.Replace("\"", "").Trim();
+                if (!SetReplay(agent, pathFixed))
+                    DalamudApi.ShowNotification("Error: File does not contains a valid replay", NotificationType.Error);
+            }
+
+            ImGui.EndPopup();
         }
 
         if (!displayDetachedReplayList)
@@ -139,6 +171,9 @@ public static unsafe class ReplayListUI
             ? "Select Duty"
             : DalamudApi.DataManager.GetExcelSheet<ContentFinderCondition>().GetRowOrDefault(selectedContent)?.Name.ToString() ?? selectedContent.ToString(), ImGuiComboFlags.HeightLarge))
         {
+            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+            ImGui.InputTextWithHint("##searchContent", "Filter...", ref searchContent);
+
             if (ImGui.Selectable("- All -", selectedContent == 0))
                 selectedContent = 0;
 
@@ -149,7 +184,9 @@ public static unsafe class ReplayListUI
                 .OrderBy(d => d.TerritoryType.ValueNullable?.TerritoryIntendedUse.RowId)
                 .ThenBy(d => d.RowId))
             {
-                if (ImGui.Selectable($"{cfc.Name.ToString().FirstCharToUpper()}##{cfc.RowId}", cfc.RowId == selectedContent))
+                var name = cfc.Name.ToString().FirstCharToUpper();
+                if (searchContent != "" && !name.Contains(searchContent, StringComparison.OrdinalIgnoreCase)) continue;
+                if (ImGui.Selectable($"{name}##{cfc.RowId}", cfc.RowId == selectedContent))
                     selectedContent = cfc.RowId;
 
                 if (cfc.RowId == selectedContent && ImGui.IsWindowAppearing())
@@ -328,5 +365,19 @@ public static unsafe class ReplayListUI
             ARealmRecorded.Config.Save();
 
         ImGui.EndChild();
+    }
+
+    private static bool SetReplay(nint agent, string path)
+    {
+        if (agent == nint.Zero) return false;
+
+        var file = new FileInfo(path);
+        if (!file.Exists || file.Extension != ".dat") return false;
+
+        var replay = Game.ReadReplayHeaderAndChapters(file.FullName);
+        if (replay is not { header.IsValid: true }) return false;
+
+        Game.SetDutyRecorderMenuSelection(agent, path, replay.Value.header);
+        return true;
     }
 }
