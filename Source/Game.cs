@@ -124,6 +124,13 @@ public static unsafe class Game
 
     private static void ReceiveActorControlPacketDetour(ContentsReplayModule* contentsReplayModule, uint gameObjectID, nint packet)
     {
+        if (*(ushort*)packet == 931 && *(Bool*)(packet + 4))
+        {
+            contentsReplayModule->fileStream = 0;
+            contentsReplayModule->fileStreamNextWrite = 0;
+            contentsReplayModule->fileStreamEnd = 0;
+        }
+
         ContentsReplayModule.receiveActorControlPacket.Original(contentsReplayModule, gameObjectID, packet);
         if (*(ushort*)packet != 931 || !*(Bool*)(packet + 4)) return;
 
@@ -192,9 +199,6 @@ public static unsafe class Game
         if (isSameChapter)
         {
             DalamudApi.LogInfo($"[ARealmRecorded] Tricking FFXIV into a loading screen for same chapter ({chapter}) to prevent external parser crash.");
-            // Trick FFXIV's chapter jump logic by temporarily altering `seek`.
-            // If we are on chapter 1, pretend we are at the time of chapter 2.
-            // If we are on chapter >1, pretend we are at the time of chapter 1 (0).
             var fakeSeek = chapter == 1 ? (contentsReplayModule->chapters[1]->ms / 1000f) : 0f;
             contentsReplayModule->seek = fakeSeek;
         }

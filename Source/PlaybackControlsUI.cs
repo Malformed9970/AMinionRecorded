@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Numerics;
 using Dalamud.Game.ClientState.Conditions;
@@ -50,6 +51,13 @@ public static unsafe class PlaybackControlsUI
         {
             showUnstuckButton = true;
             loadedPlayback = true;
+
+            var segment = Game.GetReplayDataSegmentDetour(Common.ContentsReplayModule);
+            if (segment != null && Common.ContentsReplayModule->speed > 0)
+            {
+                Common.ContentsReplayModule->overallDataOffset += segment->Length;
+                unstuckTimer.Restart();
+            }
         }
 
         if (!loadedPlayback)
@@ -142,13 +150,7 @@ public static unsafe class PlaybackControlsUI
 #endif
         }
 
-        ImGui.SameLine();
-        if (ImGuiEx.FontButton(FontAwesomeIcon.StepBackward.ToIconString(), UiBuilder.IconFont))
-        {
-            var chapter = Common.ContentsReplayModule->GetPreviousStartChapter();
-            Game.JumpToChapter(chapter);
-        }
-        ImGuiEx.SetItemTooltip("Jump to previous pull");
+
 
         if (showUnstuckButton)
         {
@@ -178,10 +180,22 @@ public static unsafe class PlaybackControlsUI
         }
         ImGuiEx.SetItemTooltip("Hides the menu under certain circumstances.");
 
+        const int restartDelayMS = 12_000;
         var sliderWidth = ImGui.GetContentRegionAvail().X;
+        var seekMS = Math.Max(Common.ContentsReplayModule->seek.ToMilliseconds(), (int)Common.ContentsReplayModule->chapters[0]->ms);
+        var lastStartChapterMS = Common.ContentsReplayModule->chapters[Common.ContentsReplayModule->FindPreviousChapterType(2)]->ms;
+        var nextStartChapterMS = Common.ContentsReplayModule->chapters[Common.ContentsReplayModule->FindNextChapterType(2)]->ms;
+        if (lastStartChapterMS >= nextStartChapterMS)
+            nextStartChapterMS = Common.ContentsReplayModule->replayHeader.totalMS;
+        var currentTime = new TimeSpan(0, 0, 0, 0, (int)(seekMS - lastStartChapterMS));
 
         using (ImGuiEx.ItemWidthBlock.Begin(sliderWidth))
         {
+            var progress = (float)(seekMS - lastStartChapterMS) / (nextStartChapterMS - lastStartChapterMS - restartDelayMS);
+            if (float.IsNaN(progress) || float.IsInfinity(progress)) progress = 0;
+            progress = Math.Clamp(progress, 0f, 1f);
+            ImGui.ProgressBar(progress, new Vector2(sliderWidth, ImGui.GetFrameHeight()), currentTime.ToString("hh':'mm':'ss"));
+
             var speed = Common.ContentsReplayModule->speed;
             if (ImGui.SliderFloat("##Speed", ref speed, 0.05f, 10.0f, "%.2fx", ImGuiSliderFlags.AlwaysClamp))
             {
@@ -214,7 +228,7 @@ public static unsafe class PlaybackControlsUI
             DalamudApi.Framework.RunOnTick(() => Common.ContentsReplayModule->speed = customSpeed == currentNativeSpeed ? 1 : customSpeed);
         }
 
-        shouldPlaybackControlHide = !ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows | ImGuiHoveredFlags.RectOnly);
+        shouldPlaybackControlHide = !ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows);
 
         ImGui.End();
     }

@@ -16,3 +16,12 @@ D:\Dalamud\ARealmRecorded\Source\obj\Debug\ARealmRecorded.AssemblyInfo.cs
 D:\Dalamud\ARealmRecorded\Source\obj\Debug\ARealmRecorded.csproj.CoreCompileInputs.cache
 D:\Dalamud\ARealmRecorded\Source\obj\Debug\ARealmRecorded.sourcelink.json
 D:\Dalamud\ARealmRecorded\Source\obj\Debug\ARealmRecorded.dll
+D:\Dalamud\ARealmRecorded\bin\Debug\ARealmRecorded.deps.json
+D:\Dalamud\ARealmRecorded\bin\Debug\ARealmRecorded.dll
+D:\Dalamud\ARealmRecorded\obj\Debug\ARealmRecorded.csproj.AssemblyReference.cache
+D:\Dalamud\ARealmRecorded\obj\Debug\ARealmRecorded.GeneratedMSBuildEditorConfig.editorconfig
+D:\Dalamud\ARealmRecorded\obj\Debug\ARealmRecorded.AssemblyInfoInputs.cache
+D:\Dalamud\ARealmRecorded\obj\Debug\ARealmRecorded.AssemblyInfo.cs
+D:\Dalamud\ARealmRecorded\obj\Debug\ARealmRecorded.csproj.CoreCompileInputs.cache
+D:\Dalamud\ARealmRecorded\obj\Debug\ARealmRecorded.sourcelink.json
+D:\Dalamud\ARealmRecorded\obj\Debug\ARealmRecorded.dll

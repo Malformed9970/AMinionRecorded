@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7712nAyKU7A=",
+  "dgSpecHash": "HgXRNi3zczk=",
   "success": true,
-  "projectFilePath": "D:\\Dalamud\\ARealmRecorded\\Source\\ARealmRecorded.csproj",
+  "projectFilePath": "D:\\Dalamud\\ARealmRecorded\\ARealmRecorded.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Daemon\\.nuget\\packages\\dalamudpackager\\15.0.0\\dalamudpackager.15.0.0.nupkg.sha512",
     "C:\\Users\\Daemon\\.nuget\\packages\\dotnet.reproduciblebuilds\\1.2.39\\dotnet.reproduciblebuilds.1.2.39.nupkg.sha512"

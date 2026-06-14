@@ -8,6 +8,7 @@ namespace ARealmRecorded;
 public static unsafe class ReplayManager
 {
     private static FFXIVReplay* loadedReplay;
+    private static nint dummyBuffer = nint.Zero;
 
     public static void PlaybackUpdate(ContentsReplayModule* contentsReplayModule)
     {
@@ -24,15 +25,13 @@ public static unsafe class ReplayManager
         {
             var offset = (uint)contentsReplayModule->overallDataOffset;
 
-            // Spoof native FFXIV 512kb chunk properties dynamically!
-            // If we don't spoof this, they math offset = segment - fileStream (yielding up to 200MB) and buffer-overflow!
+            // FFXIV 7.0 bounds checking requires fileStream to stay updated, or large chapter jumps (> 1 hour) cause native crashes.
             var chunkStart = offset & ~0x7FFFFu; // 512kb boundary
             contentsReplayModule->fileStream = (nint)loadedReplay->Data + (nint)chunkStart;
-            contentsReplayModule->fileStreamNextWrite = contentsReplayModule->fileStream;
             
-            // FFXIV natively uses fileStreamEnd for its bounds-check during chapter jumps.
-            // By setting it to the absolute true end of the buffer, we prevent FFXIV from Segfaulting on Native Chapter jumps,
-            // while preserving the 512KB spoofed `fileStream` start pointer that external parsers fundamentally require to prevent buffer overflows.
+            // Critical Fix: FFXIV's native chunk-loader runs on a background thread and attempts to stream the next 512KB into fileStreamNextWrite.
+            // We MUST point fileStreamNextWrite to our isolated dummyBuffer, otherwise FFXIV will async-overwrite loadedReplay->Data and corrupt packets after 5 minutes!
+            contentsReplayModule->fileStreamNextWrite = dummyBuffer;
             contentsReplayModule->fileStreamEnd = (nint)loadedReplay->Data + loadedReplay->header.replayLength;
             
             contentsReplayModule->currentFileSection = (int)(offset / 0x80000) + 1;
@@ -49,7 +48,13 @@ public static unsafe class ReplayManager
 
     public static void OnSetChapter(ContentsReplayModule* contentsReplayModule, byte chapter)
     {
-        // Pass-through to Native FFXIV Chapter Handler
+        if (loadedReplay != null)
+        {
+            contentsReplayModule->fileStream = (nint)loadedReplay->Data;
+            contentsReplayModule->fileStreamNextWrite = dummyBuffer;
+            contentsReplayModule->fileStreamEnd = (nint)loadedReplay->Data + loadedReplay->header.replayLength;
+            contentsReplayModule->currentFileSection = 1;
+        }
     }
 
     public static bool LoadReplay(int slot) => LoadReplay(Path.Combine(Game.replayFolder, Game.GetReplaySlotName(slot)));
@@ -64,15 +69,17 @@ public static unsafe class ReplayManager
         if (loadedReplay != null)
             Marshal.FreeHGlobal((nint)loadedReplay);
 
+        if (dummyBuffer == nint.Zero)
+            dummyBuffer = Marshal.AllocHGlobal(0x80000);
+
         loadedReplay = newReplay;
         Common.ContentsReplayModule->replayHeader = loadedReplay->header;
         Common.ContentsReplayModule->chapters = loadedReplay->chapters;
         Common.ContentsReplayModule->dataLoadType = 0;
 
-        // Initialize 512KB spoof bounds for compatibility (prevent it from doing Math spanning the entire 200MB file at once)
         Common.ContentsReplayModule->fileStream = (nint)loadedReplay->Data;
-        Common.ContentsReplayModule->fileStreamNextWrite = (nint)loadedReplay->Data;
-        Common.ContentsReplayModule->fileStreamEnd = (nint)loadedReplay->Data + 0x80000;
+        Common.ContentsReplayModule->fileStreamNextWrite = dummyBuffer;
+        Common.ContentsReplayModule->fileStreamEnd = (nint)loadedReplay->Data + loadedReplay->header.replayLength;
         Common.ContentsReplayModule->currentFileSection = 1;
 
         ARealmRecorded.Config.LastLoadedReplay = path;
@@ -84,6 +91,13 @@ public static unsafe class ReplayManager
         if (loadedReplay == null) return false;
         Marshal.FreeHGlobal((nint)loadedReplay);
         loadedReplay = null;
+        
+        if (dummyBuffer != nint.Zero)
+        {
+            Marshal.FreeHGlobal(dummyBuffer);
+            dummyBuffer = nint.Zero;
+        }
+        
         return true;
     }
 
@@ -99,5 +113,11 @@ public static unsafe class ReplayManager
 
         Marshal.FreeHGlobal((nint)loadedReplay);
         loadedReplay = null;
+
+        if (dummyBuffer != nint.Zero)
+        {
+            Marshal.FreeHGlobal(dummyBuffer);
+            dummyBuffer = nint.Zero;
+        }
     }
 }

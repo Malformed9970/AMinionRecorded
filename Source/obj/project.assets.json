@@ -77,11 +77,11 @@
   "project": {
     "version": "1.0.3",
     "restore": {
-      "projectUniqueName": "D:\\Dalamud\\ARealmRecorded\\Source\\ARealmRecorded.csproj",
+      "projectUniqueName": "D:\\Dalamud\\ARealmRecorded\\ARealmRecorded.csproj",
       "projectName": "ARealmRecorded",
-      "projectPath": "D:\\Dalamud\\ARealmRecorded\\Source\\ARealmRecorded.csproj",
+      "projectPath": "D:\\Dalamud\\ARealmRecorded\\ARealmRecorded.csproj",
       "packagesPath": "C:\\Users\\Daemon\\.nuget\\packages\\",
-      "outputPath": "D:\\Dalamud\\ARealmRecorded\\Source\\obj\\",
+      "outputPath": "D:\\Dalamud\\ARealmRecorded\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Daemon\\AppData\\Roaming\\NuGet\\NuGet.Config"
